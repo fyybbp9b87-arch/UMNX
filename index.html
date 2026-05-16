@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UMN CORE</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+--bg:#070709;
+--panel:#101014;
+--user:#ff3b3b22;
+--ai:#00ff6620;
+--red:#ff3b3b;
+--green:#00ff66;
+--text:#f5f5f5;
+--muted:#8d8d95;
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+background:var(--bg);
+color:var(--text);
+font-family:'Inter',sans-serif;
+height:100vh;
+display:flex;
+overflow:hidden;
+}
+
+/* SIDEBAR */
+
+#sidebar{
+width:250px;
+background:#0b0b0e;
+border-right:1px solid rgba(255,255,255,0.05);
+padding:20px;
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+
+.logo{
+font-family:'Space Mono';
+font-size:20px;
+font-weight:bold;
+letter-spacing:2px;
+background:linear-gradient(90deg,var(--red),var(--green));
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+margin-bottom:10px;
+}
+
+.sideBtn{
+padding:12px;
+border:none;
+border-radius:12px;
+background:#17171d;
+color:white;
+cursor:pointer;
+font-weight:600;
+transition:0.2s;
+text-align:left;
+}
+
+.sideBtn:hover{
+background:#23232d;
+}
+
+/* MAIN */
+
+#main{
+flex:1;
+display:flex;
+flex-direction:column;
+height:100vh;
+}
+
+/* CHAT */
+
+#chat{
+flex:1;
+overflow-y:auto;
+padding:24px;
+display:flex;
+flex-direction:column;
+gap:16px;
+scroll-behavior:smooth;
+max-width:1000px;
+width:100%;
+margin:auto;
+}
+
+.msg{
+max-width:75%;
+padding:14px 16px;
+border-radius:16px;
+line-height:1.6;
+white-space:pre-wrap;
+word-wrap:break-word;
+backdrop-filter:blur(10px);
+animation:fade .2s ease;
+}
+
+@keyframes fade{
+from{
+opacity:0;
+transform:translateY(6px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+.user{
+align-self:flex-end;
+background:var(--user);
+border:1px solid rgba(255,59,59,0.2);
+}
+
+.ai{
+align-self:flex-start;
+background:var(--ai);
+border:1px solid rgba(0,255,102,0.15);
+}
+
+pre{
+background:#050506;
+padding:14px;
+border-radius:12px;
+overflow-x:auto;
+margin-top:10px;
+border:1px solid rgba(255,255,255,0.05);
+}
+
+code{
+font-family:'Space Mono';
+color:#00ff66;
+font-size:13px;
+}
+
+img{
+max-width:100%;
+border-radius:12px;
+margin-top:10px;
+}
+
+/* INPUT */
+
+#bottom{
+padding:18px;
+background:#0d0d11;
+border-top:1px solid rgba(255,255,255,0.05);
+}
+
+#inputWrap{
+display:flex;
+gap:10px;
+}
+
+textarea{
+flex:1;
+resize:none;
+border:none;
+outline:none;
+padding:14px;
+border-radius:14px;
+background:#17171d;
+color:white;
+font-size:15px;
+height:58px;
+}
+
+button{
+border:none;
+cursor:pointer;
+padding:14px 18px;
+border-radius:14px;
+font-weight:bold;
+font-family:'Space Mono';
+color:white;
+}
+
+#send{
+background:linear-gradient(135deg,var(--red),var(--green));
+}
+
+#image{
+background:#1f1f27;
+}
+
+.small{
+font-size:12px;
+color:var(--muted);
+margin-top:auto;
+line-height:1.5;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="sidebar">
+
+<div class="logo">UMN CORE</div>
+
+<button class="sideBtn" onclick="getNews('general')">
+🌍 Breaking News
+</button>
+
+<button class="sideBtn" onclick="getNews('politics')">
+🏛 Politics
+</button>
+
+<button class="sideBtn" onclick="getNews('sports')">
+⚽ Sports
+</button>
+
+<button class="sideBtn" onclick="getNews('technology')">
+💻 Tech
+</button>
+
+<button class="sideBtn" onclick="weather()">
+🌦 Weather
+</button>
+
+<button class="sideBtn" onclick="clearChat()">
+🧹 Clear Chat
+</button>
+
+<div class="small">
+UNITED MELON NATIONS<br>
+AI CORE ONLINE
+</div>
+
+</div>
+
+<div id="main">
+
+<div id="chat"></div>
+
+<div id="bottom">
+
+<div id="inputWrap">
+
+<textarea id="input"
+placeholder="Message UMN Core..."></textarea>
+
+<button id="send">SEND</button>
+
+<button id="image">IMAGE</button>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const chat=document.getElementById("chat");
+const input=document.getElementById("input");
+
+let messages=[];
+
+/* ADD MESSAGE */
+
+function add(text,type){
+
+text=format(text);
+
+const div=document.createElement("div");
+
+div.className="msg "+type;
+
+div.innerHTML=text;
+
+chat.appendChild(div);
+
+chat.scrollTop=chat.scrollHeight;
+}
+
+/* FORMAT */
+
+function format(text){
+
+return text
+
+.replace(/```html([\s\S]*?)```/g,
+'<pre><code>$1</code></pre>')
+
+.replace(/```css([\s\S]*?)```/g,
+'<pre><code>$1</code></pre>')
+
+.replace(/```js([\s\S]*?)```/g,
+'<pre><code>$1</code></pre>')
+
+.replace(/```([\s\S]*?)```/g,
+'<pre><code>$1</code></pre>')
+
+.replace(/\n/g,"<br>");
+
+}
+
+/* CHAT */
+
+async function send(){
+
+const text=input.value.trim();
+
+if(!text)return;
+
+add(text,"user");
+
+messages.push({
+role:"user",
+content:text
+});
+
+input.value="";
+
+try{
+
+const res=await fetch("/api/chat",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messages
+})
+});
+
+const data=await res.json();
+
+add(data.reply,"ai");
+
+messages.push({
+role:"assistant",
+content:data.reply
+});
+
+}catch(err){
+
+add("ERROR: "+err.message,"ai");
+
+}
+
+}
+
+/* IMAGE */
+
+function imageGen(){
+
+const text=input.value.trim();
+
+if(!text)return;
+
+add(text,"user");
+
+const url=
+"https://image.pollinations.ai/prompt/"
++encodeURIComponent(
+"futuristic neon cyberpunk UMN style "+text
+);
+
+add(`<img src="${url}">`,"ai");
+
+}
+
+/* WEATHER */
+
+async function weather(){
+
+add("🌦 Fetching weather...","ai");
+
+try{
+
+const r=await fetch("https://wttr.in/?format=j1");
+
+const data=await r.json();
+
+const area=
+data.nearest_area?.[0]?.areaName?.[0]?.value || "Unknown";
+
+const temp=
+data.current_condition?.[0]?.temp_C || "?";
+
+const desc=
+data.current_condition?.[0]?.weatherDesc?.[0]?.value || "";
+
+const humidity=
+data.current_condition?.[0]?.humidity || "?";
+
+const wind=
+data.current_condition?.[0]?.windspeedKmph || "?";
+
+add(`
+<b>🌍 ${area}</b><br><br>
+
+🌡 Temperature: ${temp}°C<br>
+☁ Condition: ${desc}<br>
+💧 Humidity: ${humidity}%<br>
+🌬 Wind: ${wind} km/h
+`,"ai");
+
+}catch(err){
+
+add("Weather unavailable.","ai");
+
+}
+
+}
+
+/* NEWS */
+
+async function getNews(category){
+
+add(`Loading ${category} news...`,"ai");
+
+try{
+
+const res=await fetch("/api/news?category="+category);
+
+const data=await res.json();
+
+let html=
+`<b>${category.toUpperCase()} NEWS</b><br><br>`;
+
+data.articles.forEach(a=>{
+
+html+=`
+<b>${a.title}</b><br>
+${a.description || ""}<br><br>
+`;
+
+});
+
+add(html,"ai");
+
+}catch(err){
+
+add("Could not load news.","ai");
+
+}
+
+}
+
+/* CLEAR */
+
+function clearChat(){
+
+chat.innerHTML="";
+
+messages=[];
+
+}
+
+document.getElementById("send").onclick=send;
+
+document.getElementById("image").onclick=imageGen;
+
+input.addEventListener("keydown",e=>{
+
+if(e.key==="Enter"&&!e.shiftKey){
+
+e.preventDefault();
+
+send();
+
+}
+
+});
+
+</script>
+
+</body>
+</html>
